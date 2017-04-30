@@ -5,7 +5,7 @@
 
 /* Required packages to run crawler.js */
 // Bull - our queue library
-    var Queue = require('bull');
+var Queue = require('bull');
 
 // Request - our library for sending out requests
 var request = require('request');
@@ -30,14 +30,39 @@ if(cluster.isMaster){
 
     crawlersQueue.process(function(job, done){
         console.log("** New site crawling request **");
+        var workers = [];
+
         var workQueue = Queue("crawlers:" + job.data.prefix);
 
         workQueue.add({link: job.data.link});
 
         job.data.queue = "crawlers:" + job.data.prefix;
 
+        workQueue.on('ready', function() {
+            // Queue ready for job
+            // All Redis connections are done
+            console.log("HI!");
+        });
+
+        workQueue.on('global:completed', function(completedJob, result){
+            // Job completed with output result!
+            workQueue.getJobCounts().then(function(e){
+                console.log(e);
+                if(e.wait == 0 && e.active == 0 && e.delayed == 0){
+                    console.log(job.data.queue + " is done now");
+
+                    workers.forEach(function(worker){
+                        worker.kill();
+                    });
+
+                    done();
+                }
+            });
+        })
+
         for (var i = 0; i < numWorkers; i++) {
             var worker = cluster.fork();
+            workers.push(worker);
             worker.send( job.data );
         }
 
@@ -49,6 +74,8 @@ if(cluster.isMaster){
         cluster.on('exit', function(worker, code, signal) {
             console.log('worker ' + worker.process.pid + ' died');
         });
+
+
 
 
     });
@@ -176,6 +203,9 @@ if(cluster.isMaster){
                                                 done();
                                             });
                                         });
+
+
+
                                     }
 
                                 });

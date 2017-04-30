@@ -37,6 +37,7 @@ http.listen(3000, function(){
 /* Route: [POST]/crawl */
 app.post('/crawl', function(req, res){
     console.log(req.body);
+
     res.send(req.body);
     //res.send("OK!");
 })

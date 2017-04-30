@@ -24,7 +24,7 @@ const cluster = require('cluster');
 /* Queues */
 var crawlersQueue = Queue('crawlers', 6379, '127.0.0.1');
 
-var numWorkers = 2;
+var numWorkers = 10;
 
 if(cluster.isMaster){
 
@@ -64,8 +64,6 @@ if(cluster.isMaster){
     process.on('message', function(data) {
         // we only want to intercept messages that have a chat property
         if (data) {
-            console.log('Master to worker: ', data, cluster.worker.id);
-            console.log(data.link);
 
             var workQueue = Queue(data.queue);
 
@@ -88,6 +86,7 @@ if(cluster.isMaster){
 
                                         var $ = cheerio.load(html);
 
+                                        console.log('[WORKER.#' + cluster.worker.id + "]");
                                         console.log("HTTP status: " + response.statusCode);
                                         console.log("Page titel: " + $('title').text());
                                         console.log("Meta description: " + $('meta[name="description"]').attr('content'));
@@ -128,7 +127,7 @@ if(cluster.isMaster){
 
                                                         var crawlThis = {
                                                             url: link,
-                                                            queue: data.prefix
+                                                            queue: data.queue
                                                         }
 
 

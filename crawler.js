@@ -30,6 +30,7 @@ crawlersQueue.process(function(job, done){
 
     // Check if URL is already crawled
     var url = job.data.link;
+    var prefix = job.data.prefix;
 
     console.log(url);
     wedis.exists(url, function(reply){

@@ -56,7 +56,6 @@ app.get('/test', function (req, res) {
 })
 
 
-var numWorkers = require('os').cpus().length;
 
 var crawlersQueue = Queue('crawlers', 6379, '127.0.0.1');
 

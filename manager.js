@@ -15,12 +15,16 @@ var wutil = require('./lib/wutil');
 
 
 /* Queues */
-var crawlersQueue = Queue('crawlers', 6379, '127.0.0.1');
+//var crawlersQueue = Queue('crawlers', 6379, '127.0.0.1');
+var jobsQueue = Queue('jobs', 6379, '127.0.0.1');
 
 
 /* Action */
-wedis.subscribe('manager', function(url){
-    console.log(url)
+wedis.subscribe('manager', function(page){
+
+    page = JSON.parse(page);
+    var url = page.url;
+
     wedis.exists(url, function(reply){
         if(!reply){
             wedis.inqueue(url, function(reply){
@@ -29,7 +33,7 @@ wedis.subscribe('manager', function(url){
                 } else {
                     wedis.enqueue(url, function(reply){
                         if(reply){
-                            crawlersQueue.add({link: url});
+                            jobsQueue.add({queue: page.queue, link: url});
                         } else {
                             console.log("Failed to enqueue link " + url);
                         }
@@ -38,4 +42,16 @@ wedis.subscribe('manager', function(url){
             })
         }
     })
-})
+});
+
+
+jobsQueue.process(function(job, done) {
+    console.log("Adding " + job.data.link + " to queue: " + job.data.queue);
+
+    var crawlingQueue = Queue(job.data.queue);
+    crawlingQueue.add({link: job.data.link});
+    crawlingQueue.close().then(function () {
+        done();
+    })
+
+});

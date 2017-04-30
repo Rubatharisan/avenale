@@ -36,7 +36,15 @@ http.listen(3000, function(){
 
 /* Route: [POST]/crawl */
 app.post('/crawl', function(req, res){
-    console.log(req.body);
+    console.log(req.body.domain);
+
+    crawlersQueue.add(
+        {
+            link: req.body.domain,
+            prefix: '1'
+        }
+    );
+
     res.send(req.body);
     //res.send("OK!");
 })
@@ -49,7 +57,7 @@ app.get('/test', function (req, res) {
 
 
 var numWorkers = require('os').cpus().length;
-console.log(numWorkers);
+
 var crawlersQueue = Queue('crawlers', 6379, '127.0.0.1');
 
 

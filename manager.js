@@ -15,12 +15,31 @@ var wutil = require('./lib/wutil');
 
 
 /* Queues */
-var crawlersQueue = Queue('crawlers', 6379, '127.0.0.1');
-
+//var crawlersQueue = Queue('crawlers', 6379, '127.0.0.1');
+var dict = {};
 
 /* Action */
-wedis.subscribe('manager', function(url){
-    console.log(url)
+wedis.subscribe('manager', function(page){
+    page = JSON.parse(page);
+
+    var workQueue;
+
+    if(dict[page.queue]){
+        workQueue = dict[page.queue];
+        console.log("Exists!!");
+    } else {
+        workQueue = Queue(page.queue);
+        dict[page.queue] = workQueue;
+        console.log("Adding new!")
+    }
+
+
+    var workQueue = Queue(page.queue);
+
+    var url = page.url;
+
+    console.log(page);
+
     wedis.exists(url, function(reply){
         if(!reply){
             wedis.inqueue(url, function(reply){
@@ -29,7 +48,7 @@ wedis.subscribe('manager', function(url){
                 } else {
                     wedis.enqueue(url, function(reply){
                         if(reply){
-                            crawlersQueue.add({link: url});
+                            //workQueue.add({link: url});
                         } else {
                             console.log("Failed to enqueue link " + url);
                         }
@@ -38,4 +57,6 @@ wedis.subscribe('manager', function(url){
             })
         }
     })
+
+    workQueue.close();
 })

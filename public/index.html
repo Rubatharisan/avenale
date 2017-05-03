@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Avenale</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+</head>
+<body>
+<br>
+
+<div class="container" id="scanSetupSuccess" style="display: none;">
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+        <h4 class="alert-heading">That was it ...</h4>
+        <p>... we will email you when we know more</p>
+        <b class="mb-0">If we require you to do further work, we will email you instructions</b>
+    </div>
+</div>
+
+<div class="container" id="scanSetupWarning" style="display: none;">
+    <div class="alert warning alert-dismissible fade show" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+        <h4 class="alert-heading">Well done!</h4>
+        <p>We will email you when we know more</p>
+        <b class="mb-0">If we require you to do further work, we will mail you instructions</b>
+    </div>
+</div>
+
+<div class="container" id="scanSetup">
+    <div class="alert alert-dismissible fade show" role="alert">
+            <br>
+            <h4 class="alert-heading">Scan your website for improvements</h4>
+        <p>We'll mail you what we think you can improve on your site</p>
+
+        <form id="scanWebsite">
+            <div class="form-group">
+                <label for="userWebsite">Your website</label>
+                <input type="url" class="form-control" id="userWebsite" placeholder="http://example.com" required value="http://bloomit.dk.bluebird.pw">
+            </div>
+
+            <div class="form-group">
+                <label for="userWebsite">Your email</label>
+                <input type="email" class="form-control" id="userEmail" placeholder="example@email.com" required value="rt@morningtrain.dk">
+            </div>
+
+            <button type="submit" class="btn btn-primary">Scan</button>
+
+        </form>
+    </div>
+</div>
+
+
+
+
+<!-- jQuery first, then Tether, then Bootstrap JS. -->
+<script src="https://code.jquery.com/jquery-3.1.1.min.js" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
+<script src="/index.js"></script>
+
+</body>
+</html>

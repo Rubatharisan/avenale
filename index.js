@@ -4,7 +4,10 @@ Created by Rubatharisan Thirumathyam
 
 /* Required packages to run index.js */
 // Express - doing our routes and API
-var app = require('express')();
+var express = require('express');
+
+var app = express();
+
 
 // Http - serving our server
 var http = require('http').Server(app);
@@ -34,9 +37,12 @@ http.listen(3000, function(){
     wedis.flushdb();
 });
 
+app.use(express.static('public'))
+
+
 /* Route: [POST]/crawl */
 app.post('/crawl', function(req, res){
-    console.log(req.body.domain);
+    console.log("Adding " + req.body.domain + " to queue");
 
     crawlersQueue.add(
         {
@@ -47,13 +53,12 @@ app.post('/crawl', function(req, res){
 
     res.send(req.body);
     //res.send("OK!");
-})
+});
 
 /* Route: [GET]/addJob/ */
-app.get('/test', function (req, res) {
-    crawlersQueue.add({link: 'http://bloomit.dk.bluebird.pw', prefix: '1'});
-    res.send('hello world')
-})
+app.post('/test', function (req, res) {
+    res.send(req.body);
+});
 
 
 

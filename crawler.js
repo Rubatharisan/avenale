@@ -33,32 +33,28 @@ if(cluster.isMaster){
         var workers = [];
 
         var workQueue = Queue("crawlers:" + job.data.prefix);
+        job.data.queue = "crawlers:" + job.data.prefix;
 
         workQueue.add({link: job.data.link});
 
-        job.data.queue = "crawlers:" + job.data.prefix;
-
         workQueue.on('ready', function() {
-            // Queue ready for job
-            // All Redis connections are done
-            console.log("HI!");
+
         });
 
         workQueue.on('global:completed', function(completedJob, result){
             // Job completed with output result!
             workQueue.getJobCounts().then(function(e){
-                console.log(e);
+                console.log('Crawling in queue: ', e);
                 if(e.wait == 0 && e.active == 0 && e.delayed == 0){
-                    console.log(job.data.queue + " is done now");
 
-                    workers.forEach(function(worker){
+                    /* workers.forEach(function(worker){
                         worker.kill();
-                    });
+                    }); */
 
-                    done();
+                    //                    done();
                 }
             });
-        })
+        });
 
         for (var i = 0; i < numWorkers; i++) {
             var worker = cluster.fork();
@@ -67,12 +63,11 @@ if(cluster.isMaster){
         }
 
         cluster.on('online', function(worker) {
-            // Lets create a few jobs for the queue workers
-            console.log("Online");
+            console.log("[WORKER.ID#" + worker.id + "] ready")
         });
 
         cluster.on('exit', function(worker, code, signal) {
-            console.log('worker ' + worker.process.pid + ' died');
+            console.log("[WORKER.PID#" + worker.process.pid + ", .# " + worker.id + "] died");
         });
 
 
@@ -82,11 +77,6 @@ if(cluster.isMaster){
 
 } else {
 
-
-    /* workQueue.process(function(job, jobDone){
-        console.log("Job done by worker", cluster.worker.id, job.jobId);
-        jobDone();
-    }); */
 
     process.on('message', function(data) {
         // we only want to intercept messages that have a chat property
@@ -98,13 +88,11 @@ if(cluster.isMaster){
                 var url = job.data.link;
 
                 wedis.exists(url, function(reply){
-                    console.log(reply);
 
                     if(!reply) {
 
                         wedis.ack(url, function(reply){
 
-                            console.log(reply);
                             if(reply){
 
                                 request({url: url, time: true}, function (error, response, html) {
@@ -113,7 +101,7 @@ if(cluster.isMaster){
 
                                         var $ = cheerio.load(html);
 
-                                        console.log('[WORKER.#' + cluster.worker.id + "]");
+                                        console.log('[WORKER.ID#' + cluster.worker.id + "]");
                                         console.log("HTTP status: " + response.statusCode);
                                         console.log("Page titel: " + $('title').text());
                                         console.log("Meta description: " + $('meta[name="description"]').attr('content'));
@@ -137,7 +125,7 @@ if(cluster.isMaster){
                                                     }
 
 
-                                                    if (this.attribs.href.indexOf(wutil.getHostnameByUrl(url)) !== -1) {
+                                                    if (this.attribs.href.indexOf(wutil.getHostnameByUrl(url) + '/') !== -1) {
                                                         var cleanLink = wutil.cleanUrl(this.attribs.href);
                                                         internalLinks.add(cleanLink);
 
@@ -152,15 +140,9 @@ if(cluster.isMaster){
 
                                                         wedis.appearsOn(link, url); // Double check this
 
-                                                        var crawlThis = {
-                                                            url: link,
-                                                            queue: data.queue
-                                                        }
+                                                        //linksQueue.add({url: link});
+                                                        enqueue(link, workQueue);
 
-
-
-                                                        //console.log(JSON.stringify(crawlThis));
-                                                        wedis.publish('manager', JSON.stringify(crawlThis));
                                                     });
                                                 }
                                             });
@@ -222,6 +204,27 @@ if(cluster.isMaster){
                 });
             });
 
+
+            var enqueue = function(url, workQueue){
+                wedis.exists(url, function(reply){
+                    if(!reply){
+                        wedis.inqueue(url, function(reply){
+                            if(reply){
+                                //console.log("URL already in queue");
+                            } else {
+                                wedis.enqueue(url, function(reply){
+                                    if(reply){
+                                        workQueue.add({link: url});
+                                    } else {
+                                        //console.log("Failed to enqueue link " + url);
+                                    }
+                                });
+                            }
+                        })
+                    }
+                });
+            }
+
         }
 
 
@@ -231,8 +234,3 @@ if(cluster.isMaster){
 
 
 }
-
-
-/* Actions */
-
-//crawlersQueue.add({msg: 'test'});

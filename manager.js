@@ -50,6 +50,7 @@ jobsQueue.process(function(job, done) {
 
     var crawlingQueue = Queue(job.data.queue);
     crawlingQueue.add({link: job.data.link});
+
     crawlingQueue.close().then(function () {
         done();
     })

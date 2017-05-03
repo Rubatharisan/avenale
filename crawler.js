@@ -24,7 +24,7 @@ const cluster = require('cluster');
 /* Queues */
 var crawlersQueue = Queue('crawlers', 6379, '127.0.0.1');
 
-var numWorkers = 10;
+var numWorkers = 3;
 
 if(cluster.isMaster){
 
@@ -44,11 +44,15 @@ if(cluster.isMaster){
             console.log("HI!");
         });
 
+        var completedJobs = 0;
         workQueue.on('global:completed', function(completedJob, result){
+            completedJobs++;
+
+
             // Job completed with output result!
             workQueue.getJobCounts().then(function(e){
                 console.log(e);
-                if(e.wait == 0 && e.active == 0 && e.delayed == 0){
+                if(e.wait == 0 && e.active == 0 && e.delayed == 0 && completedJobs != 1){
                     console.log(job.data.queue + " is done now");
 
                     workers.forEach(function(worker){
@@ -160,7 +164,24 @@ if(cluster.isMaster){
 
 
                                                         //console.log(JSON.stringify(crawlThis));
-                                                        wedis.publish('manager', JSON.stringify(crawlThis));
+                                                        //wedis.publish('manager', JSON.stringify(crawlThis));
+                                                        wedis.exists(link, function(reply){
+                                                            if(!reply){
+                                                                wedis.inqueue(link, function(reply){
+                                                                    if(reply){
+                                                                        //console.log("URL already in queue");
+                                                                    } else {
+                                                                        wedis.enqueue(link, function(reply){
+                                                                            if(reply){
+                                                                                workQueue.add({link: link});
+                                                                            } else {
+                                                                                console.log("Failed to enqueue link " + link);
+                                                                            }
+                                                                        });
+                                                                    }
+                                                                })
+                                                            }
+                                                        })
                                                     });
                                                 }
                                             });
@@ -234,5 +255,7 @@ if(cluster.isMaster){
 
 
 /* Actions */
+
+
 
 //crawlersQueue.add({msg: 'test'});

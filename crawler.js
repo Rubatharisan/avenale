@@ -24,7 +24,7 @@ const cluster = require('cluster');
 /* Queues */
 var crawlersQueue = Queue('crawlers', 6379, '127.0.0.1');
 
-var numWorkers = 10;
+var numWorkers = 1;
 
 if(cluster.isMaster){
 
@@ -32,10 +32,16 @@ if(cluster.isMaster){
         console.log("** New site crawling request **");
         var workers = [];
 
-        var workQueue = Queue("crawlers:" + job.data.prefix);
-        job.data.queue = "crawlers:" + job.data.prefix;
+        var workQueue = Queue("crawlers:" + job.data.queueId);
+        job.data.queue = "crawlers:" + job.data.queueId;
 
-        workQueue.add({link: job.data.link});
+        var analyzeQueue = Queue('analyzers');
+
+        workQueue.add(
+            {
+                link: job.data.domain
+            }
+        );
 
         workQueue.on('ready', function() {
 
@@ -43,6 +49,15 @@ if(cluster.isMaster){
 
         workQueue.on('global:completed', function(completedJob, result){
             // Job completed with output result!
+            console.log(completedJob.data, job.data.sessionId);
+
+            var object = {
+                link: completedJob.data.link,
+                sessionId: job.data.sessionId
+            }
+
+            analyzeQueue.add(object);
+
             workQueue.getJobCounts().then(function(e){
                 console.log('Crawling in queue: ', e);
                 if(e.wait == 0 && e.active == 0 && e.delayed == 0){

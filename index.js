@@ -1,5 +1,5 @@
 /*
-Created by Rubatharisan Thirumathyam
+ Created by Rubatharisan Thirumathyam
  */
 
 /* Required packages to run index.js */
@@ -8,12 +8,10 @@ var express = require('express');
 
 var app = express();
 
-
 // Http - serving our server
 var http = require('http').Server(app);
 
-// Socket.IO - websockets
-var io = require('socket.io')(http);
+var io = require('socket.io').listen(3001);
 
 // Bull - our queue library
 var Queue = require('bull');
@@ -21,6 +19,8 @@ var Queue = require('bull');
 // Wedis - our custom library to handle redis
 var wedis = require('./lib/wedis');
 
+var crypto = require('crypto');
+var base64url = require('base64url');
 
 
 // body parsing tool for method POST - json
@@ -37,36 +37,57 @@ http.listen(3000, function(){
     wedis.flushdb();
 });
 
-app.use(express.static('public'))
+app.use(express.static('public'));
 
 
 /* Route: [POST]/crawl */
 app.post('/crawl', function(req, res){
-    console.log("Adding " + req.body.domain + " to queue");
+    wedis.flushdb();
 
-    crawlersQueue.add(
-        {
-            link: req.body.domain,
-            prefix: '1'
-        }
-    );
+    var sessionId = randomStringAsBase64Url(24);
+    var queueId = randomStringAsBase64Url(12);
 
-    res.send(req.body);
-    //res.send("OK!");
+    var sessionData = {
+        'sessionId' : sessionId,
+        'email': req.body.email,
+        'domain': req.body.domain,
+        'queueId': queueId
+    };
+
+    wedis.setSession(sessionData, function(){
+        crawlersQueue.add(sessionData);
+
+        res.send(sessionData);
+    });
+
 });
 
-/* Route: [GET]/addJob/ */
-app.post('/test', function (req, res) {
-    res.send(req.body);
+
+app.post('/setup/socket', function(req, res){
+    var sessionId = req.body.sessionId;
+
+    var nsp = io.of('/' + sessionId);
+
+    res.send(200);
+
+
 });
 
-
-
+var messageQueue = Queue('messages', 6379, '127.0.0.1');
 var crawlersQueue = Queue('crawlers', 6379, '127.0.0.1');
 
 
+messageQueue.process(function(job, done){
+    io.of('/' + job.data.sessionId).emit('message', job.data );
+    done();
+});
+
+function randomStringAsBase64Url(size) {
+    return base64url(crypto.randomBytes(size));
+}
+
 /*
-Waiting queue:
+ Waiting queue:
  1) "bull:crawlers:wait"
  2) "bull:crawlers:active"
 

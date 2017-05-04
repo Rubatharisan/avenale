@@ -3,10 +3,21 @@
 <head>
     <!-- Required meta tags -->
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Avenale</title>
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+    <link rel="stylesheet"
+          href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css"
+          integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ"
+          crossorigin="anonymous">
+
+    <title>
+        Avenale
+    </title>
+
 </head>
 <body>
 <br>
@@ -19,6 +30,65 @@
         <h4 class="alert-heading">That was it ...</h4>
         <p>... we will email you when we know more</p>
         <b class="mb-0">If we require you to do further work, we will email you instructions</b>
+    </div>
+</div>
+
+<div class="container" id="setupInfo">
+    <div class="alert alert-dismissible fade show" role="alert">
+        <h4 id="progressTitle" class="alert-heading">
+            Work progress
+        </h4>
+        <br>
+        <div class="row align-items-start">
+            <div class="col">
+                <p class="align-self-end">Session #ID: </p>
+                <small id="sessionIdInfo"></small>
+            </div>
+            <div class="col">
+                <p class="align-self-end">Queue #ID: </p>
+                <small id="queueIdInfo"></small>
+            </div>
+        </div>
+        <hr>
+        <div class="row align-items-start">
+            <div class="col">
+                <p class="align-self-end">Domain: </p>
+                <small id="domainInfo"></small>
+            </div>
+            <div class="col">
+                <p class="align-self-end">Email: </p>
+                <small id="emailInfo"></small>
+            </div>
+        </div>
+        <br>
+        <hr>
+
+        <div id="badCards">
+            <div class="card bad-card" style="display:none;">
+                <span class="badge badge-danger">*</span>
+                <div class="card-block">
+                    This is some text within a card block.
+                </div>
+            </div>
+        </div>
+
+
+        <div id="goodCards">
+            <div class="card good-card" style="display:none;">
+                <span class="badge badge-success">*</span>
+                <div class="card-block">
+                    This is some text within a card block.
+                </div>
+            </div>
+        </div>
+
+
+
+
+
+        <div id="progressContent">
+
+        </div>
     </div>
 </div>
 
@@ -37,9 +107,8 @@
     <div class="alert alert-dismissible fade show" role="alert">
             <br>
             <h4 class="alert-heading">Scan your website for improvements</h4>
-        <p>We'll mail you what we think you can improve on your site</p>
-
-        <form id="scanWebsite">
+            <br>
+             <form id="scanWebsite">
             <div class="form-group">
                 <label for="userWebsite">Your website</label>
                 <input type="url" class="form-control" id="userWebsite" placeholder="http://example.com" required value="http://bloomit.dk.bluebird.pw">
@@ -63,6 +132,7 @@
 <script src="https://code.jquery.com/jquery-3.1.1.min.js" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.min.js" integrity="sha256-WKvqiY0jZHWQZIohYEmr9KUC5rEaYEOFTq+ByllJK8w=" crossorigin="anonymous"></script>
 <script src="/index.js"></script>
 
 </body>

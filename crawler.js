@@ -24,7 +24,7 @@ const cluster = require('cluster');
 /* Queues */
 var crawlersQueue = Queue('crawlers', 6379, '127.0.0.1');
 
-var numWorkers = 1;
+var numWorkers = 10;
 
 if(cluster.isMaster){
 

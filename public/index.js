@@ -7,7 +7,9 @@ $("#scanWebsite").submit(function(e){
     }
 
     var success = function(e){
-        //$("#scanSetup").fadeOut();
+        $("#scanSetup").fadeOut().promise().done(function(){
+            $("#scanProgress").fadeIn();
+        });
         //$("#scanSetupSuccess").fadeIn();
         $("#emailInfo").text(e.email);
         $("#domainInfo").text(e.domain);

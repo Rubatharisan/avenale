@@ -34,7 +34,7 @@ http.listen(3000, function(){
     console.log("*** Booting index.js ***");
     console.log('* listening on *:3000 *');
     console.log('* Flushing RedisDB *');
-    wedis.flushdb();
+    //wedis.flushdb();
 });
 
 app.use(express.static('public'));
@@ -61,6 +61,14 @@ app.post('/crawl', function(req, res){
     });
 
 });
+
+app.post('/request', function(req, res){
+    console.log(req.body);
+    console.log(req.body.link);
+    wedis.getMeta(req.body.link, res);
+});
+
+
 
 
 app.post('/setup/socket', function(req, res){

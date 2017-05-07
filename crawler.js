@@ -126,6 +126,15 @@ if(cluster.isMaster){
                                         console.log("Time taken: " + response.elapsedTime + "ms");
                                         console.log();
 
+                                        var meta = {
+                                            page_titel: $('title').text(),
+                                            page_link: url,
+                                            page_meta_description: $('meta[name="description"]').attr('content'),
+                                            page_amount_links: $('a').length,
+                                            page_amount_images: $('img').length,
+                                            time_taken: response.elapsedTime
+                                        }
+
 
 
                                         if(("a").length > 0) {
@@ -195,9 +204,11 @@ if(cluster.isMaster){
                                         }
 
 
-                                        wedis.setData(url, html, function(){
-                                            wedis.setHttpStatus(url, response.statusCode, function(){
-                                                done();
+                                        wedis.setHtml(url, html, function(){
+                                            wedis.setMeta(meta, function(){
+                                                wedis.setHttpStatus(url, response.statusCode, function(){
+                                                    done();
+                                                });
                                             });
                                         });
 

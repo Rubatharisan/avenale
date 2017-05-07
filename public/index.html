@@ -14,6 +14,12 @@
           integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ"
           crossorigin="anonymous">
 
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
+          rel="stylesheet"
+          integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN"
+          crossorigin="anonymous">
+
+
     <title>
         Avenale
     </title>
@@ -21,6 +27,60 @@
 </head>
 <body>
 <br>
+
+<div class="card" style="display:none;">
+    <div class="card-block">
+        <p class="linkId" style="float:left;"></p>
+        <div class="float-right">
+            <i class="fa fa-external-link" aria-hidden="true"></i>
+        </div>
+    </div>
+</div>
+
+<div class="container" id="linkOverview" style="display: none;">
+    <i id="backButton" class="fa fa-arrow-left" aria-hidden="true"> Back</i>
+    <center>
+        <h4 id="linkTitel" class="alert-heading">
+            {{Page link}}
+        </h4>
+    </center>
+    <br>
+    <hr>
+    <div id="metaData" class="col">
+    </div>
+    <br>
+    <hr>
+    <center><h4>Appears on...</h4></center>
+    <hr>
+    <br>
+    <div id="appearsOn" class="col">
+        <h4>Appears on:</h4>
+        <div class="card appears-on-card" style="display: none;">
+            <div class="card-block">
+                <p class="linkId" style="float:left;">http://bloomit.dk.bluebird.pw/gavekurve/gavekurve-med-blomster</p>
+                <div class="float-right">
+                    <i class="fa fa-external-link" aria-hidden="true"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br>
+    <hr>
+    <center><h4>Links to...</h4></center>
+    <hr>
+    <br>
+    <div id="linksTo" class="col">
+        <div class="card links-to-card" style="display: none;">
+            <div class="card-block">
+                <p class="linkId" style="float:left;">http://bloomit.dk.bluebird.pw/gavekurve/gavekurve-med-blomster</p>
+                <div class="float-right">
+                    <i class="fa fa-external-link" aria-hidden="true"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br><hr>
+</div>
 
 <div class="container" id="scanSetupSuccess" style="display: none;">
     <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -67,17 +127,23 @@
             <div class="card bad-card" style="display:none;">
                 <span class="badge badge-danger">*</span>
                 <div class="card-block">
-                    This is some text within a card block.
+                    <p class="linkId" style="float:left;"></p>
+                    <div class="float-right">
+                        <i class="fa fa-external-link" aria-hidden="true"></i>
+                    </div>
                 </div>
             </div>
         </div>
 
 
         <div id="goodCards">
-            <div class="card good-card" style="display:none;">
-                <span class="badge badge-success">*</span>
+            <div class="card good-card" style="display: none;">
+                    <span class="badge badge-success">*</span>
                 <div class="card-block">
-                    This is some text within a card block.
+                    <p class="linkId" style="float:left;"></p>
+                    <div class="float-right">
+                        <i class="fa fa-external-link" aria-hidden="true"></i>
+                    </div>
                 </div>
             </div>
         </div>
@@ -124,9 +190,6 @@
         </form>
     </div>
 </div>
-
-
-
 
 <!-- jQuery first, then Tether, then Bootstrap JS. -->
 <script src="https://code.jquery.com/jquery-3.1.1.min.js" crossorigin="anonymous"></script>

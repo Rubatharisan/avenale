@@ -15,17 +15,63 @@ var analyzersQueue = Queue('analyzers');
 var messageQueue = Queue('messages');
 
 
-analyzersQueue.process(function(job, done){
+// Logger instances - logging what needed
+var debug = require('debug');
 
-    job.data.emotion = 'good';
+var log = {
+        log: debug('analyzer:log'),
+        status: debug('analyzer:status'),
+        error: debug('analyzer:error'),
+        link: debug('analyzer:link')
+}
 
-    wedis.getHttpStatus(job.data.link, function(reply){
-        if(reply !== "200"){
-            job.data.emotion = 'bad';
-        }
+var os = require('os'),
+    cpuCount = os.cpus().length;
 
-        messageQueue.add(job.data);
-        done();
-    })
 
-})
+const cluster = require('cluster');
+
+var numWorkers = cpuCount * 2;
+var analyzersQueue = Queue('analyzers');
+
+
+
+if(cluster.isMaster){
+    log.log("Master loaded");
+
+    for (var i = 0; i < numWorkers; i++) {
+        cluster.fork();
+    }
+
+    cluster.on('online', function(worker) {
+        log.log("[WORKER.ID#" + worker.id + "] ready")
+    });
+
+    cluster.on('exit', function(worker, code, signal) {
+        log.error("[WORKER.PID#" + worker.process.pid + ", .# " + worker.id + "] died");
+    });
+
+} else {
+
+    log.status("Inside worker");
+
+    analyzersQueue.process(function (job, done) {
+
+        job.data.emotion = 'good';
+
+        wedis.getHttpStatus(job.data.link, function (reply) {
+            if (reply !== "200") {
+                job.data.emotion = 'bad';
+                messageQueue.add(job.data)
+                log.link("Bad link: ", job.data.link, 'http code: ' + reply);
+            }
+
+            log.link("Good link: ", job.data.link);
+
+            done();
+        })
+
+    });
+
+}
+

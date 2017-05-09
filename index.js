@@ -56,7 +56,6 @@ app.post('/crawl', function(req, res){
 
     wedis.setSession(sessionData, function(){
         crawlersQueue.add(sessionData);
-
         res.send(sessionData);
     });
 

@@ -19,17 +19,37 @@ var wutil = require('./lib/wutil');
 // Cheerio - our HTML to jQuery DOM library
 var cheerio = require('cheerio');
 
+// Debugger - our debugging tool
+var debug = require('debug');
+
+// Logger - logging what needed
+var log = {
+    log: debug('crawler:log'),
+    status: debug('crawler:status'),
+    error: debug('crawler:error')
+}
+
+
+
 const cluster = require('cluster');
+
+// Get OS amount of cores
+var os = require('os'),
+    cpuCount = os.cpus().length;
+
 
 /* Queues */
 var crawlersQueue = Queue('crawlers', 6379, '127.0.0.1');
 
-var numWorkers = 10;
+var numWorkers = cpuCount * 2;
 
 if(cluster.isMaster){
 
+    log.log("Master loaded");
+
+
     crawlersQueue.process(function(job, done){
-        console.log("** New site crawling request **");
+        log.log("New crawling request", job.data);
         var workers = [];
 
         var workQueue = Queue("crawlers:" + job.data.queueId);
@@ -49,7 +69,7 @@ if(cluster.isMaster){
 
         workQueue.on('global:completed', function(completedJob, result){
             // Job completed with output result!
-            console.log(completedJob.data, job.data.sessionId);
+            log.status("Crawling completed:", completedJob.data, job.data.sessionId);
 
             var object = {
                 link: completedJob.data.link,
@@ -59,7 +79,8 @@ if(cluster.isMaster){
             analyzeQueue.add(object);
 
             workQueue.getJobCounts().then(function(e){
-                console.log('Crawling in queue: ', e);
+                log.status('Crawling in queue: ', e);
+
                 if(e.wait == 0 && e.active == 0 && e.delayed == 0){
 
                     /* workers.forEach(function(worker){
@@ -78,15 +99,12 @@ if(cluster.isMaster){
         }
 
         cluster.on('online', function(worker) {
-            console.log("[WORKER.ID#" + worker.id + "] ready")
+            log.log("[WORKER.ID#" + worker.id + "] ready")
         });
 
         cluster.on('exit', function(worker, code, signal) {
-            console.log("[WORKER.PID#" + worker.process.pid + ", .# " + worker.id + "] died");
+            log.error("[WORKER.PID#" + worker.process.pid + ", .# " + worker.id + "] died");
         });
-
-
-
 
     });
 
@@ -116,15 +134,16 @@ if(cluster.isMaster){
 
                                         var $ = cheerio.load(html);
 
-                                        console.log('[WORKER.ID#' + cluster.worker.id + "]");
-                                        console.log("HTTP status: " + response.statusCode);
-                                        console.log("Page titel: " + $('title').text());
-                                        console.log("Meta description: " + $('meta[name="description"]').attr('content'));
-                                        console.log("URL: " + url);
-                                        console.log("Links: " + $('a').length);
-                                        console.log("Images: " + $('img').length);
-                                        console.log("Time taken: " + response.elapsedTime + "ms");
-                                        console.log();
+                                        log.log("----------------------------------------");
+                                        log.log('[WORKER.ID#' + cluster.worker.id + "]");
+                                        log.log("HTTP status: " + response.statusCode);
+                                        log.log("Page titel: " + $('title').text());
+                                        log.log("Meta description: " + $('meta[name="description"]').attr('content'));
+                                        log.log("URL: " + url);
+                                        log.log("Links: " + $('a').length);
+                                        log.log("Images: " + $('img').length);
+                                        log.log("Time taken: " + response.elapsedTime + "ms");
+                                        log.log("----------------------------------------");
 
                                         var meta = {
                                             page_titel: $('title').text(),
@@ -218,7 +237,7 @@ if(cluster.isMaster){
 
                                 });
                             } else {
-                                done(Error('error ack url: ' + url));
+                                done(log.error('error ack url: ' + url));
                             }
 
                         })
@@ -243,6 +262,7 @@ if(cluster.isMaster){
                                         workQueue.add({link: url});
                                     } else {
                                         //console.log("Failed to enqueue link " + url);
+                                        log.error("Failed to enqueue", url);
                                     }
                                 });
                             }

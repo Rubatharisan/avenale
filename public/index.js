@@ -10,6 +10,7 @@ $("#scanWebsite").submit(function(e){
         $("#scanSetup").fadeOut().promise().done(function(){
             $("#scanProgress").fadeIn();
         });
+
         //$("#scanSetupSuccess").fadeIn();
         $("#emailInfo").text(e.email);
         $("#domainInfo").text(e.domain);

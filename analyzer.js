@@ -13,6 +13,7 @@ var wutil = require('./lib/wutil');
 
 var analyzersQueue = Queue('analyzers');
 var messageQueue = Queue('messages');
+var cheerio = require('cheerio');
 
 
 // Logger instances - logging what needed
@@ -22,7 +23,8 @@ var log = {
         log: debug('analyzer:log'),
         status: debug('analyzer:status'),
         error: debug('analyzer:error'),
-        link: debug('analyzer:link')
+        link: debug('analyzer:link'),
+        bad_link: debug('analyzer:bad_link')
 }
 
 var os = require('os'),
@@ -44,32 +46,49 @@ if(cluster.isMaster){
     }
 
     cluster.on('online', function(worker) {
-        log.log("[WORKER.ID#" + worker.id + "] ready")
+        log.log("[ANALYZER.ID#" + worker.id + "] ready")
     });
 
     cluster.on('exit', function(worker, code, signal) {
-        log.error("[WORKER.PID#" + worker.process.pid + ", .# " + worker.id + "] died");
+        log.error("[ANALYZER.PID#" + worker.process.pid + ", .# " + worker.id + "] died");
     });
 
 } else {
 
-    log.status("Inside worker");
-
     analyzersQueue.process(function (job, done) {
 
-        job.data.emotion = 'good';
+        var notified = false;
 
-        wedis.getHttpStatus(job.data.link, function (reply) {
-            if (reply !== "200") {
+        log.status(job.data);
+
+        wedis.getHtml(url, function(htmlContent){
+            var $ = cheerio.load(htmlContent);
+            log.status($('a').length);
+
+            wedis.getHttpStatus(job.data.link, function (reply) {
+                if (reply !== "200") {
+                    log.bad_link("Bad link: ", job.data.link, 'http code: ' + reply);
+                    doNotify();
+                } else {
+                    log.link("Good link: ", job.data.link);
+                }
+
+            });
+
+            console.log(htmlContent);
+        });
+
+
+        var doNotify = function(){
+            if(notified === false) {
+
                 job.data.emotion = 'bad';
-                messageQueue.add(job.data)
-                log.link("Bad link: ", job.data.link, 'http code: ' + reply);
+                notified = true;
+                messageQueue.add(job.data);
+
             }
+        }
 
-            log.link("Good link: ", job.data.link);
-
-            done();
-        })
 
     });
 

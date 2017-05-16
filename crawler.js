@@ -38,7 +38,7 @@ const cluster = require('cluster');
 
 // Get OS amount of cores
 var os = require('os'),
-    cpuCount = os.cpus().length;
+    cpuCount = os.cpus().length * 2;
 
 
 /* Queues */
@@ -52,7 +52,6 @@ if(cluster.isMaster){
 
 
     crawlersQueue.process(function(job, done){
-        var workers = [];
         var isCompleted = false;
 
         log.log("New crawling request", job.data);
@@ -89,10 +88,6 @@ if(cluster.isMaster){
                 if(e.wait == 0 && e.active == 0 && e.delayed == 0 && isCompleted == false){
                     isCompleted = true;
 
-                    workers.forEach(function(worker){
-                        worker.kill();
-                    });
-
                     done(
                         log.log("I am done now with " + job.data.domain)
                     );
@@ -102,7 +97,6 @@ if(cluster.isMaster){
 
         for (var i = 0; i < job.data.workers; i++) {
             var worker = cluster.fork();
-            workers.push(worker);
             worker.send( job.data );
         }
 

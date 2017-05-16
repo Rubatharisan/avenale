@@ -12,6 +12,9 @@ var request = require('request');
 
 // Wedis - our custom library to handle redis
 var wedis = require('./lib/wedis');
+var redis_host = wedis.getHost();
+var redis_port = wedis.getPort();
+
 
 // Wedis - our custom library for utilities
 var wutil = require('./lib/wutil');
@@ -39,18 +42,20 @@ var os = require('os'),
 
 
 /* Queues */
-var crawlersQueue = Queue('crawlers', 6379, '127.0.0.1');
+var crawlersQueue = Queue('crawlers', redis_port, redis_host);
 
-var numWorkers = cpuCount * 2;
 
 if(cluster.isMaster){
 
     log.log("Master loaded");
 
 
+
     crawlersQueue.process(function(job, done){
-        log.log("New crawling request", job.data);
         var workers = [];
+        var isCompleted = false;
+
+        log.log("New crawling request", job.data);
 
         var workQueue = Queue("crawlers:" + job.data.queueId);
         job.data.queue = "crawlers:" + job.data.queueId;
@@ -73,7 +78,7 @@ if(cluster.isMaster){
 
             var object = {
                 link: completedJob.data.link,
-                sessionId: job.data.sessionId
+                sessionId: job.data.sessionId,
             }
 
             analyzeQueue.add(object);
@@ -81,18 +86,21 @@ if(cluster.isMaster){
             workQueue.getJobCounts().then(function(e){
                 log.status('Crawling in queue: ', e);
 
-                if(e.wait == 0 && e.active == 0 && e.delayed == 0){
+                if(e.wait == 0 && e.active == 0 && e.delayed == 0 && isCompleted == false){
+                    isCompleted = true;
 
-                    /* workers.forEach(function(worker){
+                    workers.forEach(function(worker){
                         worker.kill();
-                    }); */
+                    });
 
-                    //                    done();
+                    done(
+                        log.log("I am done now with " + job.data.domain)
+                    );
                 }
             });
         });
 
-        for (var i = 0; i < numWorkers; i++) {
+        for (var i = 0; i < job.data.workers; i++) {
             var worker = cluster.fork();
             workers.push(worker);
             worker.send( job.data );

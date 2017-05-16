@@ -11,6 +11,9 @@ var wedis = require('./lib/wedis');
 // Wedis - our custom library for utilities
 var wutil = require('./lib/wutil');
 
+// Tests
+var lizator = require('./tests/index.js');
+
 var analyzersQueue = Queue('analyzers');
 var messageQueue = Queue('messages');
 var cheerio = require('cheerio');
@@ -33,7 +36,7 @@ var os = require('os'),
 
 const cluster = require('cluster');
 
-var numWorkers = cpuCount * 2;
+var numWorkers = 2;
 var analyzersQueue = Queue('analyzers');
 
 
@@ -57,40 +60,48 @@ if(cluster.isMaster){
 
     analyzersQueue.process(function (job, done) {
 
-        var notified = false;
+        var url = job.data.link;
+        console.log(url);
 
-        log.status(job.data);
+         wedis.getHtml(url, function(htmlContent){
 
-        wedis.getHtml(url, function(htmlContent){
-            var $ = cheerio.load(htmlContent);
-            log.status($('a').length);
-
-            wedis.getHttpStatus(job.data.link, function (reply) {
-                if (reply !== "200") {
-                    log.bad_link("Bad link: ", job.data.link, 'http code: ' + reply);
-                    doNotify();
-                } else {
-                    log.link("Good link: ", job.data.link);
-                }
-
-            });
-
-            console.log(htmlContent);
-        });
+            if(htmlContent != undefined){
+                var $ = cheerio.load(htmlContent);
 
 
-        var doNotify = function(){
-            if(notified === false) {
+                wedis.getTests(job.data.sessionId, function(tests){
+                    var issues = lizator.do(tests, $, job.data.link, wedis);
+                    console.log(issues);
 
-                job.data.emotion = 'bad';
-                notified = true;
-                messageQueue.add(job.data);
 
+                });
             }
-        }
 
+
+
+
+
+
+        });
+        done();
 
     });
 
 }
 
+/*
+ function(htmlContent){
+ log.status($('a').length);
+
+ wedis.getHttpStatus(job.data.link, function (reply) {
+ if (reply !== "200") {
+ log.bad_link("Bad link: ", job.data.link, 'http code: ' + reply);
+ doNotify();
+ } else {
+ log.link("Good link: ", job.data.link);
+ }
+
+ });
+
+ log.log(htmlContent);
+ */

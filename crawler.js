@@ -126,6 +126,8 @@ if(cluster.isMaster){
             process.exit();
         }
 
+        var coreDomain = data.link;
+
         if (data.queue) {
 
             var workQueue = Queue(data.queue, redis_port, redis_host);
@@ -176,8 +178,7 @@ if(cluster.isMaster){
                                                 this.attribs.href = wutil.appendRelativePath(url, this.attribs.href);
                                             }
 
-
-                                            if (this.attribs.href.indexOf(wutil.getHostnameByUrl(url) + '/') !== -1) {
+                                            if (this.attribs.href.indexOf(coreDomain + '/') !== -1) {
                                                 var cleanLink = wutil.cleanUrl(this.attribs.href);
                                                 internalLinks.add(cleanLink);
 

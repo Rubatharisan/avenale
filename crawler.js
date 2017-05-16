@@ -49,9 +49,11 @@ if(cluster.isMaster){
 
     log.log("Master loaded");
 
+    var workers = [];
 
 
     crawlersQueue.process(function(job, done){
+
         var isCompleted = false;
 
         log.log("New crawling request", job.data);
@@ -91,12 +93,17 @@ if(cluster.isMaster){
                     done(
                         log.log("I am done now with " + job.data.domain)
                     );
+
+                    /* workers.forEach(function(worker){
+                       worker.send("kill");
+                    }); */
                 }
             });
         });
 
         for (var i = 0; i < job.data.workers; i++) {
             var worker = cluster.fork();
+            workers.push(worker);
             worker.send( job.data );
         }
 
@@ -115,7 +122,11 @@ if(cluster.isMaster){
 
     process.on('message', function(data) {
         // we only want to intercept messages that have a chat property
-        if (data) {
+        if(data == "kill"){
+            process.exit();
+        }
+
+        if (data.queue) {
 
             var workQueue = Queue(data.queue, redis_port, redis_host);
 

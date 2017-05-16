@@ -126,9 +126,9 @@ if(cluster.isMaster){
             process.exit();
         }
 
-        var coreDomain = data.link;
 
         if (data.queue) {
+            var coreDomain = data.domain;
 
             var workQueue = Queue(data.queue, redis_port, redis_host);
 
@@ -178,7 +178,8 @@ if(cluster.isMaster){
                                                 this.attribs.href = wutil.appendRelativePath(url, this.attribs.href);
                                             }
 
-                                            if (this.attribs.href.indexOf(coreDomain + '/') !== -1) {
+                                            // @TODO: Bug, if example.com/?target.dk, then all example.com/* is going to be crawled.
+                                            if (this.attribs.href.indexOf(wutil.getHostnameByUrl(coreDomain) + '/') !== -1) {
                                                 var cleanLink = wutil.cleanUrl(this.attribs.href);
                                                 internalLinks.add(cleanLink);
 

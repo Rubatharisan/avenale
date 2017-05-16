@@ -57,10 +57,10 @@ if(cluster.isMaster){
 
         log.log("New crawling request", job.data);
 
-        var workQueue = Queue("crawlers:" + job.data.queueId);
+        var workQueue = Queue("crawlers:" + job.data.queueId, redis_port, redis_host);
         job.data.queue = "crawlers:" + job.data.queueId;
 
-        var analyzeQueue = Queue('analyzers');
+        var analyzeQueue = Queue('analyzers', redis_port, redis_host);
 
         workQueue.add(
             {
@@ -123,7 +123,7 @@ if(cluster.isMaster){
         // we only want to intercept messages that have a chat property
         if (data) {
 
-            var workQueue = Queue(data.queue);
+            var workQueue = Queue(data.queue, redis_port, redis_host);
 
             workQueue.process(function(job, done){
                 var url = job.data.link;

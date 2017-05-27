@@ -1,9 +1,15 @@
 var service = {
-    do: function($, link, wedis){
-        console.log("Inside 500!", $('a').length, link);
-        wedis.exists(link, function(reply){
-            console.log("Inside 500 - exists ", link, reply)
-        })
+    do: function($, link, wedis, meta, httpCode){
+        var issues = {};
+
+        if(httpCode.charAt(0) == "5"){
+            issues.server_error = "Server error";
+            issues.server_error_code = httpCode;
+        }
+
+        return issues;
+
+
     }
 };
 

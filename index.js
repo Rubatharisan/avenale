@@ -16,6 +16,7 @@ var io = require('socket.io').listen(3001);
 // Wedis - our custom library to handle redis
 var wedis = require('./lib/wedis');
 var wutil = require('./lib/wutil');
+var Queue = require('bull');
 
 // body parsing tool for method POST - json
 var bodyParser = require('body-parser');
@@ -69,4 +70,11 @@ app.post('/setup/socket', function(req, res){
     var sessionId = req.body.sessionId;
     var nsp = io.of('/' + sessionId);
     res.send(200);
+});
+
+var messageQueue = Queue('messages', 6379, '194.135.92.191');
+
+messageQueue.process(function(job, done){
+    io.of('/' + job.data.sessionId).emit('message', job.data );
+    done();
 });

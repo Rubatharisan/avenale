@@ -1,10 +1,20 @@
 $("#scanWebsite").submit(function(e){
     e.preventDefault();
 
+
     var data = {
         'domain': $('#userWebsite').val(),
-        'email': $('#userEmail').val()
-    }
+        'email': $('#userEmail').val(),
+        'workers': $('#userWorkers').val()
+    };
+
+    data.tests = [];
+
+    $("input[name='tests']:checkbox:checked").map(function () {
+        data.tests.push($(this).val());
+    });
+
+    console.log(data);
 
     var success = function(e){
         $("#scanSetup").fadeOut().promise().done(function(){
@@ -46,6 +56,12 @@ $("#backButton").click(function(){
     });
 })
 
+$("#testButton").click(function(){
+
+
+
+    console.log($("#tests:checkbox:checked"));
+})
 
 var setupWebsocket = function(sessionId){
     console.log("HI!");
@@ -148,6 +164,7 @@ var initiateWebsocket = function(sessionId){
     var socket = io('http://localhost:3001/' + sessionId);
     socket.on('message', function(msg){
         setupCard(msg);
+        console.log(msg);
     });
 
 

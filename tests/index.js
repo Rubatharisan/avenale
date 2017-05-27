@@ -1,21 +1,34 @@
-var tests = {}
+var cases = {}
 
 var normalizedPath = require("path").join(__dirname, "cases");
 
 require("fs").readdirSync(normalizedPath).forEach(function(file) {
-    var test = require("./cases/" + file);
-    tests[file] = test;
+    var theCase = require("./cases/" + file);
+    cases[file] = theCase;
 });
 
 var service = {
-    do: function(arrayOfTests, $, link, wedis){
+    do: function(urlData, $, link, wedis){
+
         var issues = {};
 
-        for(var test in arrayOfTests){
-            var result = tests[arrayOfTests[test]].do($, link, wedis);
-            if(Object.keys(result).length !== 0){
-                issues[arrayOfTests[test]] = result;
+        for(var currentCase in urlData.requiredTests){
+
+            var caseAction = cases[urlData.requiredTests[currentCase]];
+
+            console.log(urlData);
+            
+            if(urlData.headers['content-type'].indexOf(caseAction.for()) >= 0){
+                var result = caseAction.do($, urlData, wedis);
+
+                if (Object.keys(result).length !== 0) {
+                    issues[urlData.requiredTests[currentCase]] = result;
+                }
+
             }
+
+
+
         }
 
         return issues;
@@ -23,41 +36,3 @@ var service = {
 };
 
 module.exports = service;
-
-
-/* checkTests(
-    { lupus: 'bar', cancer: 'baz', hiv: 'foo' },
-    ['hiv', 'lupus', 'cancer']
-).then(function (results) {
-        return console.log(results);
-});
-
-
-
-
-
-
-
-*/
-
-
-
-
-
-
-
-/* var tests = {};
-
- tests.hiv = function (data) {
- return Promise.resolve(data.hiv);
- };
-
- tests.lupus = function (data) {
- return Promise.resolve(data.lupus);
- };
-
- tests.cancer = function (data) {
- return Promise.resolve(data.cancer);
- };
-
- */

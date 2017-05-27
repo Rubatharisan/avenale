@@ -12,10 +12,8 @@ var wedis = require('./lib/wedis');
 var wutil = require('./lib/wutil');
 
 // Tests
-var lizator = require('./tests/index.js');
+var caseController = require('./tests/index.js');
 
-var analyzersQueue = Queue('analyzers');
-var messageQueue = Queue('messages');
 var cheerio = require('cheerio');
 
 
@@ -30,16 +28,13 @@ var log = {
         bad_link: debug('analyzer:bad_link')
 }
 
-var os = require('os'),
-    cpuCount = os.cpus().length;
-
+var os = require('os');
 
 const cluster = require('cluster');
 
-var numWorkers = 2;
+var numWorkers = 1;
 var analyzersQueue = Queue('analyzers');
-
-
+var messageQueue = Queue('messages');
 
 if(cluster.isMaster){
     log.log("Master loaded");
@@ -47,6 +42,7 @@ if(cluster.isMaster){
     for (var i = 0; i < numWorkers; i++) {
         cluster.fork();
     }
+
 
     cluster.on('online', function(worker) {
         log.log("[ANALYZER.ID#" + worker.id + "] ready")
@@ -58,50 +54,57 @@ if(cluster.isMaster){
 
 } else {
 
+
     analyzersQueue.process(function (job, done) {
 
         var url = job.data.link;
-        console.log(url);
 
-         wedis.getHtml(url, function(htmlContent){
+        wedis.getHtml(url, function (htmlContent) {
+            var $ = undefined;
 
-            if(htmlContent != undefined){
-                var $ = cheerio.load(htmlContent);
-
-
-                wedis.getTests(job.data.sessionId, function(tests){
-                    var issues = lizator.do(tests, $, job.data.link, wedis);
-                    console.log(issues);
-
-
-                });
+            if (htmlContent != undefined) {
+                $ = cheerio.load(htmlContent);
             }
 
+            wedis.getMetaData(url, function (meta) {
+
+                wedis.getHeaders(url, function (headers) {
+
+                    wedis.getHttpStatus(url, function(httpCode){
+
+                        wedis.getRequiredTests(job.data.sessionId, function (requiredTests) {
+
+                            var urlData = {
+                                url: url,
+                                meta: meta,
+                                headers: headers,
+                                httpCode: httpCode,
+                                requiredTests: requiredTests
+                            }
+
+                            var issues = caseController.do(urlData, $, wedis);
+
+                            if (Object.keys(issues).length !== 0) {
+                                issues.sessionId = job.data.sessionId;
+                                issues.link = url;
+                                issues.emotion = 'bad';
+                                messageQueue.add(issues);
+                                console.log(issues);
+                            }
 
 
+                            done();
 
+                        });
+                    });
+
+                });
+
+            });
 
 
         });
-        done();
 
     });
 
 }
-
-/*
- function(htmlContent){
- log.status($('a').length);
-
- wedis.getHttpStatus(job.data.link, function (reply) {
- if (reply !== "200") {
- log.bad_link("Bad link: ", job.data.link, 'http code: ' + reply);
- doNotify();
- } else {
- log.link("Good link: ", job.data.link);
- }
-
- });
-
- log.log(htmlContent);
- */

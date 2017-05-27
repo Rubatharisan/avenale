@@ -177,7 +177,7 @@
              <form id="scanWebsite">
             <div class="form-group">
                 <label for="userWebsite">Your website</label>
-                <input type="url" class="form-control" id="userWebsite" placeholder="http://example.com" required value="http://bloomit.dk.bluebird.pw">
+                <input type="url" class="form-control" id="userWebsite" placeholder="http://example.com" required value="http://inwatec.dk/wp-content/uploads/2015/02/Tornado_v2.170.png">
             </div>
 
             <div class="form-group">
@@ -185,9 +185,50 @@
                 <input type="email" class="form-control" id="userEmail" placeholder="example@email.com" required value="rt@morningtrain.dk">
             </div>
 
-            <button type="submit" class="btn btn-primary">Scan</button>
+             <div class="form-group">
+                 <label for="userWebsite">Workers</label>
+                 <input type="number" class="form-control" id="userWorkers" placeholder="2" required value="2">
+             </div>
 
+             <div class="form-group">
+                 <label for="userWebsite">Cases</label><br>
+                 <label class="custom-control custom-checkbox">
+                     <input type="checkbox" name="tests" value="404.js" class="custom-control-input" checked>
+                     <span class="custom-control-indicator"></span>
+                     <span class="custom-control-description">Check for 404 errors</span>
+                 </label>
+
+                 <label class="custom-control custom-checkbox">
+                     <input type="checkbox" name="tests" value="500.js" class="custom-control-input">
+                     <span class="custom-control-indicator"></span>
+                     <span class="custom-control-description">Check for 5** errors</span>
+                 </label>
+
+                 <label class="custom-control custom-checkbox">
+                     <input type="checkbox" name="tests" value="h1.js" class="custom-control-input">
+                     <span class="custom-control-indicator"></span>
+                     <span class="custom-control-description">Check for h1 tags</span>
+                 </label>
+
+                 <label class="custom-control custom-checkbox">
+                     <input type="checkbox" name="tests" value="karsten.js" class="custom-control-input">
+                     <span class="custom-control-indicator"></span>
+                     <span class="custom-control-description">Check for karsten</span>
+                 </label>
+
+                 <label class="custom-control custom-checkbox">
+                     <input type="checkbox" name="tests" value="persistence.js" class="custom-control-input">
+                     <span class="custom-control-indicator"></span>
+                     <span class="custom-control-description">Check for persistence</span>
+                 </label>
+
+
+             </div>
+
+
+             <button type="submit" class="btn btn-primary">Scan</button>
         </form>
+
     </div>
 </div>
 

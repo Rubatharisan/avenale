@@ -20,6 +20,10 @@ var service = {
         }
 
         return issues;
+    },
+
+    for: function(){
+        return 'html';
     }
 };
 

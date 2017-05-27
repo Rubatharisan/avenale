@@ -2,8 +2,8 @@ var service = {
     do: function($, urlData, wedis){
         var issues = {};
 
-        if(urlData.httpCode == "404"){
-            issues.page_not_found = "Missing";
+        if(urlData.headers['content-length'] > 4000){
+            issues.image_too_large = "Size: " + urlData.headers['content-length'];
 
         }
 
@@ -13,7 +13,7 @@ var service = {
     },
 
     for: function(){
-        return '/';
+        return 'image';
     }
 };
 

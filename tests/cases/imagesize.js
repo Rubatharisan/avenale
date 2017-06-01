@@ -12,9 +12,7 @@ var service = {
 
     },
 
-    for: function(){
-        return 'image';
-    }
+    for: "image"
 };
 
 module.exports = service;

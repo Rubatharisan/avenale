@@ -16,9 +16,7 @@ var service = {
 
             var caseAction = cases[urlData.requiredTests[currentCase]];
 
-            console.log(urlData);
-            
-            if(urlData.headers['content-type'].indexOf(caseAction.for()) >= 0){
+            if(urlData.headers['content-type'].indexOf(caseAction.for) >= 0){
                 var result = caseAction.do($, urlData, wedis);
 
                 if (Object.keys(result).length !== 0) {
@@ -26,9 +24,6 @@ var service = {
                 }
 
             }
-
-
-
         }
 
         return issues;

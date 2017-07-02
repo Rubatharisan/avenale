@@ -77,8 +77,8 @@ if(cluster.isMaster){
 
             var object = {
                 link: completedJob.data.link,
-                sessionId: job.data.sessionId,
-            }
+                sessionId: job.data.sessionId
+            };
 
             analyzeQueue.add(object);
 

@@ -1,3 +1,4 @@
+var io = require('socket.io').listen(3001);
 
 var messageQueue = Queue('messages', 6379, '194.135.92.191');
 

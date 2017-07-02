@@ -34,6 +34,7 @@ http.listen(3000, function(){
 
 });
 
+/* Lets serve our public folder for people doing GET request to / */
 app.use(express.static('public'));
 
 
@@ -69,7 +70,8 @@ app.post('/request', function(req, res){
 app.post('/setup/socket', function(req, res){
     var sessionId = req.body.sessionId;
     var nsp = io.of('/' + sessionId);
-    res.send(200);
+    res.sendStatus(200);
+    io.of('/' + req.body.sessionId).emit('message', 'hi' );
 });
 
 var messageQueue = Queue('messages', 6379, '194.135.92.191');

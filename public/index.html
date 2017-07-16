@@ -177,7 +177,7 @@
              <form id="scanWebsite">
             <div class="form-group">
                 <label for="userWebsite">Your website</label>
-                <input type="url" class="form-control" id="userWebsite" placeholder="http://example.com" required value="http://inwatec.dk/wp-content/uploads/2015/02/Tornado_v2.170.png">
+                <input type="url" class="form-control" id="userWebsite" placeholder="http://example.com" required value="http://www.sdu.dk">
             </div>
 
             <div class="form-group">
@@ -193,13 +193,13 @@
              <div class="form-group">
                  <label for="userWebsite">Cases</label><br>
                  <label class="custom-control custom-checkbox">
-                     <input type="checkbox" name="tests" value="404.js" class="custom-control-input" checked>
+                     <input type="checkbox" name="tests" value="http-4-errors.js" class="custom-control-input" checked>
                      <span class="custom-control-indicator"></span>
-                     <span class="custom-control-description">Check for 404 errors</span>
+                     <span class="custom-control-description">Check for 4** errors</span>
                  </label>
 
                  <label class="custom-control custom-checkbox">
-                     <input type="checkbox" name="tests" value="500.js" class="custom-control-input">
+                     <input type="checkbox" name="tests" value="http-5-errors.js" class="custom-control-input">
                      <span class="custom-control-indicator"></span>
                      <span class="custom-control-description">Check for 5** errors</span>
                  </label>
@@ -211,15 +211,9 @@
                  </label>
 
                  <label class="custom-control custom-checkbox">
-                     <input type="checkbox" name="tests" value="karsten.js" class="custom-control-input">
+                     <input type="checkbox" name="tests" value="imagesize.js" class="custom-control-input">
                      <span class="custom-control-indicator"></span>
-                     <span class="custom-control-description">Check for karsten</span>
-                 </label>
-
-                 <label class="custom-control custom-checkbox">
-                     <input type="checkbox" name="tests" value="persistence.js" class="custom-control-input">
-                     <span class="custom-control-indicator"></span>
-                     <span class="custom-control-description">Check for persistence</span>
+                     <span class="custom-control-description">Check for image sizes</span>
                  </label>
 
 
@@ -227,16 +221,28 @@
 
 
              <button type="submit" class="btn btn-primary">Scan</button>
+             <label class="custom-control custom-checkbox">
+                 <input type="checkbox" name="tests" value="persistence.js" class="custom-control-input">
+                 <span class="custom-control-indicator"></span>
+                 <span class="custom-control-description">Save data</span>
+             </label>
         </form>
 
     </div>
 </div>
 
 <!-- jQuery first, then Tether, then Bootstrap JS. -->
-<script src="https://code.jquery.com/jquery-3.1.1.min.js" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.min.js" integrity="sha256-WKvqiY0jZHWQZIohYEmr9KUC5rEaYEOFTq+ByllJK8w=" crossorigin="anonymous"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"
+        integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js"
+        integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js"
+        integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.min.js"
+        integrity="sha256-WKvqiY0jZHWQZIohYEmr9KUC5rEaYEOFTq+ByllJK8w=" crossorigin="anonymous"></script>
+
+
 <script src="/javascript.js"></script>
 
 </body>

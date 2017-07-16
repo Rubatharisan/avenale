@@ -10,13 +10,14 @@ $("#scanWebsite").submit(function(e){
 
     data.tests = [];
 
+    console.log($("input[name='tests']:checkbox:checked"));
+
     $("input[name='tests']:checkbox:checked").map(function () {
         data.tests.push($(this).val());
     });
 
-    console.log(data);
-
     var success = function(e){
+
         $("#scanSetup").fadeOut().promise().done(function(){
             $("#scanProgress").fadeIn();
         });
@@ -54,13 +55,6 @@ $("#backButton").click(function(){
             scrollTop: $("#scanProgress").offset().top
         }, 1000);
     });
-});
-
-$("#testButton").click(function(){
-
-
-
-    console.log($("#tests:checkbox:checked"));
 });
 
 var setupWebsocket = function(sessionId){
@@ -165,8 +159,6 @@ var initiateWebsocket = function(sessionId){
         setupCard(msg);
         console.log(msg);
     });
-
-
 }
 
 

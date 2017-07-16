@@ -41,8 +41,8 @@ app.use(express.static('public'));
 /* Route: [POST]/crawl */
 app.post('/crawl', function(req, res){
 
-    var sessionId = wutil.randomStringAsBase64Url(24);
-    var queueId = wutil.randomStringAsBase64Url(12);
+    var sessionId = wutil.randomStringAsBase64(24);
+    var queueId = wutil.randomStringAsBase64(12);
 
     var sessionData = {
         'sessionId' : sessionId,
@@ -58,8 +58,6 @@ app.post('/crawl', function(req, res){
             res.send(sessionData);
         });
     });
-
-
 
 });
 
@@ -77,6 +75,9 @@ app.post('/setup/socket', function(req, res){
 var messageQueue = Queue('messages', 6379, '194.135.92.191');
 
 messageQueue.process(function(job, done){
+
     io.of('/' + job.data.sessionId).emit('message', job.data );
+
     done();
 });
+

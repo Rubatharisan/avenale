@@ -10,13 +10,14 @@ $("#scanWebsite").submit(function(e){
 
     data.tests = [];
 
+    console.log($("input[name='tests']:checkbox:checked"));
+
     $("input[name='tests']:checkbox:checked").map(function () {
         data.tests.push($(this).val());
     });
 
-    console.log(data);
-
     var success = function(e){
+
         $("#scanSetup").fadeOut().promise().done(function(){
             $("#scanProgress").fadeIn();
         });
@@ -28,7 +29,7 @@ $("#scanWebsite").submit(function(e){
         $("#queueIdInfo").text(e.queueId);
         console.log(e);
         setupWebsocket(e.sessionId);
-    }
+    };
 
     $.ajax({
         type: "POST",
@@ -38,7 +39,7 @@ $("#scanWebsite").submit(function(e){
     });
 
 
-})
+});
 
 $("#backButton").click(function(){
     $("#linkOverview").fadeOut().promise().done(function(){
@@ -54,21 +55,13 @@ $("#backButton").click(function(){
             scrollTop: $("#scanProgress").offset().top
         }, 1000);
     });
-})
-
-$("#testButton").click(function(){
-
-
-
-    console.log($("#tests:checkbox:checked"));
-})
+});
 
 var setupWebsocket = function(sessionId){
-    console.log("HI!");
     // set-up a connection between the client and the server
     var data = {
         'sessionId': sessionId
-    }
+    };
 
     $.ajax({
         type: "POST",
@@ -80,7 +73,7 @@ var setupWebsocket = function(sessionId){
             }
         }
     });
-}
+};
 
 
 
@@ -107,7 +100,7 @@ var requestData = function(link, sessionId, callback){
     var data = {
         'sessionId': sessionId,
         'link': link
-    }
+    };
 
     $.ajax({
         type: "POST",
@@ -166,8 +159,6 @@ var initiateWebsocket = function(sessionId){
         setupCard(msg);
         console.log(msg);
     });
-
-
 }
 
 

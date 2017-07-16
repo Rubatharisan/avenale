@@ -34,14 +34,15 @@ http.listen(3000, function(){
 
 });
 
+/* Lets serve our public folder for people doing GET request to / */
 app.use(express.static('public'));
 
 
 /* Route: [POST]/crawl */
 app.post('/crawl', function(req, res){
 
-    var sessionId = wutil.randomStringAsBase64Url(24);
-    var queueId = wutil.randomStringAsBase64Url(12);
+    var sessionId = wutil.randomStringAsBase64(24);
+    var queueId = wutil.randomStringAsBase64(12);
 
     var sessionData = {
         'sessionId' : sessionId,
@@ -67,12 +68,16 @@ app.post('/request', function(req, res){
 app.post('/setup/socket', function(req, res){
     var sessionId = req.body.sessionId;
     var nsp = io.of('/' + sessionId);
-    res.send(200);
+    res.sendStatus(200);
+    io.of('/' + req.body.sessionId).emit('message', 'hi' );
 });
 
 var messageQueue = Queue('messages', 6379, '194.135.92.191');
 
 messageQueue.process(function(job, done){
+
     io.of('/' + job.data.sessionId).emit('message', job.data );
+
     done();
 });
+

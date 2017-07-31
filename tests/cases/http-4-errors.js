@@ -2,9 +2,9 @@ var service = {
     do: function($, urlData, wedis){
         var issues = {};
 
-        if(urlData.httpCode == "404"){
-            issues.page_not_found = "Missing";
-
+        if(urlData.httpCode.charAt(0) == "4"){
+            issues.client_error = "Client error";
+            issues.client_error_code = urlData.httpCode;
         }
 
         return issues;

@@ -33,33 +33,30 @@ var log = {
     currentjob: debug('crawler:job:id')
 }
 
-// Node.js cluster functionality
-const cluster = require('cluster');
+var URI = require('urijs');
 
-// Get OS amount of cores
 var os = require('os'),
     cpuCount = os.cpus().length * 2;
 
-
-/* Queues */
-
+// Node.js cluster functionality
+const cluster = require('cluster');
 
 if(cluster.isMaster){
 
     log.log("Master loaded");
 
-    var crawlersQueue = Queue('crawlers', redis_port, redis_host, wedis.opts());
+    var crawlersQueue = Queue('crawlers', redis_port, redis_host);
 
     crawlersQueue.process(function(job, done){
         var workers = [];
         var isCompleted = false;
-
         log.log("New crawling request", job.data);
 
-        var workQueue = Queue("crawlers:" + job.data.queueId, redis_port, redis_host, wedis.opts());
-        job.data.queue = "crawlers:" + job.data.queueId;
+        var analyzeQueue = Queue('analyzers', redis_port, redis_host);
 
-        var analyzeQueue = Queue('analyzers', redis_port, redis_host, wedis.opts());
+
+        var workQueue = Queue("crawlers:" + job.data.queueId, redis_port, redis_host);
+        job.data.queue = "crawlers:" + job.data.queueId;
 
         workQueue.add(
             {
@@ -67,20 +64,16 @@ if(cluster.isMaster){
             }
         );
 
-        workQueue.on('ready', function() {
-
-        });
-
         workQueue.on('global:completed', function(completedJob, result){
             // Job completed with output result!
             log.status("Crawling completed:", completedJob.data, job.data.sessionId);
-
-            var object = {
+            var workQueueClosed = false;
+            var analyze = {
                 link: completedJob.data.link,
                 sessionId: job.data.sessionId
             };
 
-            analyzeQueue.add(object);
+            analyzeQueue.add(analyze);
 
             workQueue.getJobCounts().then(function(e){
                 log.status('Crawling in queue: ', e);
@@ -88,17 +81,22 @@ if(cluster.isMaster){
                 if(e.wait == 0 && e.active == 0 && e.delayed == 0 && isCompleted == false){
                     isCompleted = true;
 
-                    // @TODO: Close only if it is closed
-                    workQueue.close();
+                    if(!workQueueClosed){
+                        workQueue.close().then(function () {
+                            workQueueClosed = true;
 
-                    workers.forEach(function(worker){
-                        worker.send("kill");
-                    });
+                            workers.forEach(function(worker){
+                                worker.send("kill");
+                            });
 
-                    done(
-                        log.log("I am done now with " + job.data.domain)
-                    );
+                            // Empty workers array
+                            workers = [];
 
+                            done(
+                                log.log("I am done now with " + job.data.domain)
+                            );
+                        })
+                    }
 
                 }
             });
@@ -122,27 +120,27 @@ if(cluster.isMaster){
 
 } else {
 
-
     process.on('message', function(data) {
-        // we only want to intercept messages that have a chat property
+
         if(data == "kill"){
             process.exit();
         }
 
-
         if (data.queue) {
             var coreDomain = wutil.getHostnameByUrl(data.domain);
 
-            var workQueue = Queue(data.queue, redis_port, redis_host, wedis.opts());
+            var workQueue = Queue(data.queue, redis_port, redis_host);
 
             workQueue.process(function(job, done){
                 log.currentjob('Doing: ', job.data);
-                console.log('Doing: ', job.data);
                 var url = job.data.link;
 
                 wedis.getset(url, 'true', function(err, reply){
 
-                    if(!reply && !err) {
+                    if(err) throw err;
+
+                    if(!reply && !err)
+                    {
                         request({url: url, time: true}, function (error, response, html) {
 
                             if(!error){
@@ -169,7 +167,7 @@ if(cluster.isMaster){
                                         page_amount_links: $('a').length,
                                         page_amount_images: $('img').length,
                                         time_taken: response.elapsedTime
-                                    }
+                                    };
 
 
                                     if (("a").length > 0) {
@@ -177,20 +175,23 @@ if(cluster.isMaster){
 
                                         $("a").each(function (i) {
                                             if (typeof(this.attribs.href) !== "undefined") {
+                                                var link = URI(this.attribs.href);
 
-                                                // /example --> *.domain.tld/example ... //example.com --> http://example.com
-                                                if (this.attribs.href.charAt(0) == '/' && this.attribs.href.charAt(1) != '/') {
-                                                    this.attribs.href = wutil.appendRelativePath(url, this.attribs.href);
+                                                if(link.is('URL')){
+                                                    // /example --> *.domain.tld/example ... //example.com --> http://example.com
+                                                    if(link.is("relative")) {
+                                                        this.attribs.href = wutil.appendRelativePath(url, this.attribs.href);
+                                                    }
+
+                                                    if(coreDomain == wutil.getHostnameByUrl(wutil.cleanUrl(this.attribs.href))){
+                                                        var cleanLink = wutil.cleanUrl(this.attribs.href);
+                                                        internalLinks.add(cleanLink);
+
+                                                    } else {
+                                                        //wedis.setExternalLink(cUrl, wutil.cleanUrl(this.attribs.href));
+                                                    }
                                                 }
 
-                                                // @TODO: Bug, if example.com/?target.dk/, then all example.com/* is going to be crawled.
-                                                if (this.attribs.href.indexOf(coreDomain + '/') !== -1) {
-                                                    var cleanLink = wutil.cleanUrl(this.attribs.href);
-                                                    internalLinks.add(cleanLink);
-
-                                                } else {
-                                                    //wedis.setExternalLink(cUrl, wutil.cleanUrl(this.attribs.href));
-                                                }
                                             }
 
                                             if (i === $('a').length - 1) {
@@ -213,18 +214,21 @@ if(cluster.isMaster){
                                         $("img").each(function (i) {
                                             if (typeof(this.attribs.src) !== "undefined") {
 
-                                                // /example --> *.domain.tld/example
-                                                if (this.attribs.src.charAt(0) == '/') {
-                                                    this.attribs.src = wutil.appendRelativePath(url, this.attribs.src);
-                                                }
+                                                var link = URI(this.attribs.src);
 
-                                                // Does link contain
-                                                if (this.attribs.src.indexOf(coreDomain !== -1)) {
-                                                    var cleanLink = wutil.cleanUrl(this.attribs.src);
-                                                    internalImageLinks.add(cleanLink);
+                                                if(link.is('URL')){
+                                                    if(link.is("relative")) {
+                                                        this.attribs.src = wutil.appendRelativePath(url, this.attribs.src);
+                                                    }
 
-                                                } else {
-                                                    //wedis.setExternalLink(cUrl, wutil.cleanUrl(this.attribs.href));
+                                                    // Does link contain
+                                                    if (this.attribs.src.indexOf(coreDomain !== -1)) {
+                                                        var cleanLink = wutil.cleanUrl(this.attribs.src);
+                                                        internalImageLinks.add(cleanLink);
+
+                                                    } else {
+                                                        //wedis.setExternalLink(cUrl, wutil.cleanUrl(this.attribs.href));
+                                                    }
                                                 }
                                             }
 
@@ -252,10 +256,11 @@ if(cluster.isMaster){
                                         });
                                     });
 
-                                } else if(contentType.indexOf('image/') >= 0){
-                                    console.log("This is a image");
-                                    console.log(response.headers);
-                                    console.log(contentType);
+                                }
+                                else if(contentType.indexOf('image/') >= 0){
+                                    //console.log("This is a image");
+                                    //console.log(response.headers);
+                                    //console.log(contentType);
 
                                     wedis.setHttpStatus(url, response.statusCode, function () {
                                         wedis.setHeaders(url, response.headers, function(){
@@ -264,8 +269,9 @@ if(cluster.isMaster){
                                     });
 
 
-                                } else {
-                                    console.log("Not HTML");
+                                }
+                                else {
+                                    console.log("Not HTML nor image");
                                     console.log(contentType);
                                     wedis.setHttpStatus(url, response.statusCode, function () {
                                         wedis.setHeaders(url, response.headers, function(){
@@ -282,13 +288,14 @@ if(cluster.isMaster){
                         });
 
                     } else {
-
-                        done(log.error('error ack url: ' + url));
+                        done(
+                            log.error('URL is getting processed by another crawler: ' + url)
+                        );
                     }
 
                 });
-            });
 
+            });
 
             var enqueue = function(url, workQueue){
                 wedis.exists(url, function(reply){
@@ -306,11 +313,9 @@ if(cluster.isMaster){
             }
 
         }
-
-
-
-
     });
 
-
 }
+
+
+

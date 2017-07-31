@@ -7,12 +7,14 @@ var request = require('request');
 
 // Wedis - our custom library to handle redis
 var wedis = require('./lib/wedis');
+var redis_host = wedis.getHost();
+var redis_port = wedis.getPort();
 
 // Wedis - our custom library for utilities
 var wutil = require('./lib/wutil');
 
 // Tests
-var caseController = require('./tests/index.js');
+var caseController = require('./tests/caseController.js');
 
 var cheerio = require('cheerio');
 
@@ -33,8 +35,8 @@ var os = require('os');
 const cluster = require('cluster');
 
 var numWorkers = 1;
-var analyzersQueue = Queue('analyzers');
-var messageQueue = Queue('messages');
+var analyzersQueue = Queue('analyzers', redis_port, redis_host);
+var messageQueue = Queue('messages', redis_port, redis_host);
 
 if(cluster.isMaster){
     log.log("Master loaded");
@@ -74,24 +76,27 @@ if(cluster.isMaster){
 
                         wedis.getRequiredTests(job.data.sessionId, function (requiredTests) {
 
-                            var urlData = {
-                                url: url,
-                                meta: meta,
-                                headers: headers,
-                                httpCode: httpCode,
-                                requiredTests: requiredTests
+                            if(headers['content-type']){
+                                var urlData = {
+                                    url: url,
+                                    meta: meta,
+                                    headers: headers,
+                                    httpCode: httpCode,
+                                    requiredTests: requiredTests
+                                };
+
+                                var issues = caseController.do(urlData, $, wedis);
+
+                                if (Object.keys(issues).length !== 0) {
+                                    issues.sessionId = job.data.sessionId;
+                                    issues.link = url;
+                                    issues.emotion = 'bad';
+                                    messageQueue.add(issues);
+                                    console.log(url, issues);
+                                }
+                            } else {
+                                console.log("Sorry, no Content-Type", url);
                             }
-
-                            var issues = caseController.do(urlData, $, wedis);
-
-                            if (Object.keys(issues).length !== 0) {
-                                issues.sessionId = job.data.sessionId;
-                                issues.link = url;
-                                issues.emotion = 'bad';
-                                messageQueue.add(issues);
-                                console.log(issues);
-                            }
-
 
                             done();
 
@@ -108,3 +113,4 @@ if(cluster.isMaster){
     });
 
 }
+

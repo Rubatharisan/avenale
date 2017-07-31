@@ -1,8 +1,8 @@
 var service = {
-    do: function($, link, wedis, meta, httpCode){
+    do: function($, urlData, wedis){
         var issues = {};
 
-        if(httpCode.charAt(0) == "5"){
+        if(urlData.httpCode.charAt(0) == "5"){
             issues.server_error = "Server error";
             issues.server_error_code = httpCode;
         }

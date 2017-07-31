@@ -146,139 +146,141 @@ if(cluster.isMaster){
                             if(!error){
                                 var contentType = response.headers['content-type'];
 
-                                if(contentType.indexOf("text/html") >= 0) {
-                                    var $ = cheerio.load(html);
+                                if(contentType) {
+                                    if (contentType.indexOf("text/html") >= 0) {
+                                        var $ = cheerio.load(html);
 
-                                    log.log("----------------------------------------");
-                                    log.log('[WORKER.ID#' + cluster.worker.id + "]");
-                                    log.log("HTTP status: " + response.statusCode);
-                                    log.log("Page titel: " + $('title').text());
-                                    log.log("Meta description: " + $('meta[name="description"]').attr('content'));
-                                    log.log("URL: " + url);
-                                    log.log("Links: " + $('a').length);
-                                    log.log("Images: " + $('img').length);
-                                    log.log("Time taken: " + response.elapsedTime + "ms");
-                                    log.log("----------------------------------------");
+                                        log.log("----------------------------------------");
+                                        log.log('[WORKER.ID#' + cluster.worker.id + "]");
+                                        log.log("HTTP status: " + response.statusCode);
+                                        log.log("Page titel: " + $('title').text());
+                                        log.log("Meta description: " + $('meta[name="description"]').attr('content'));
+                                        log.log("URL: " + url);
+                                        log.log("Links: " + $('a').length);
+                                        log.log("Images: " + $('img').length);
+                                        log.log("Time taken: " + response.elapsedTime + "ms");
+                                        log.log("----------------------------------------");
 
-                                    var meta = {
-                                        page_titel: $('title').text(),
-                                        page_link: url,
-                                        page_meta_description: $('meta[name="description"]').attr('content'),
-                                        page_amount_links: $('a').length,
-                                        page_amount_images: $('img').length,
-                                        time_taken: response.elapsedTime
-                                    };
+                                        var meta = {
+                                            page_titel: $('title').text(),
+                                            page_link: url,
+                                            page_meta_description: $('meta[name="description"]').attr('content'),
+                                            page_amount_links: $('a').length,
+                                            page_amount_images: $('img').length,
+                                            time_taken: response.elapsedTime
+                                        };
 
 
-                                    if (("a").length > 0) {
-                                        var internalLinks = new Set();
+                                        if (("a").length > 0) {
+                                            var internalLinks = new Set();
 
-                                        $("a").each(function (i) {
-                                            if (typeof(this.attribs.href) !== "undefined") {
-                                                var link = URI(this.attribs.href);
+                                            $("a").each(function (i) {
+                                                if (typeof(this.attribs.href) !== "undefined") {
+                                                    var link = URI(this.attribs.href);
 
-                                                if(link.is('URL')){
-                                                    // /example --> *.domain.tld/example ... //example.com --> http://example.com
-                                                    if(link.is("relative")) {
-                                                        this.attribs.href = wutil.appendRelativePath(url, this.attribs.href);
+                                                    if (link.is('URL')) {
+                                                        // /example --> *.domain.tld/example ... //example.com --> http://example.com
+                                                        if (link.is("relative")) {
+                                                            this.attribs.href = wutil.appendRelativePath(url, this.attribs.href);
+                                                        }
+
+                                                        if (coreDomain == wutil.getHostnameByUrl(wutil.cleanUrl(this.attribs.href))) {
+                                                            var cleanLink = wutil.cleanUrl(this.attribs.href);
+                                                            internalLinks.add(cleanLink);
+
+                                                        } else {
+                                                            //wedis.setExternalLink(cUrl, wutil.cleanUrl(this.attribs.href));
+                                                        }
                                                     }
 
-                                                    if(coreDomain == wutil.getHostnameByUrl(wutil.cleanUrl(this.attribs.href))){
-                                                        var cleanLink = wutil.cleanUrl(this.attribs.href);
-                                                        internalLinks.add(cleanLink);
+                                                }
 
-                                                    } else {
-                                                        //wedis.setExternalLink(cUrl, wutil.cleanUrl(this.attribs.href));
+                                                if (i === $('a').length - 1) {
+                                                    internalLinks.forEach(function (link) {
+                                                        wedis.setInternalLink(url, link);
+
+                                                        wedis.appearsOn(link, url); // Double check this
+
+                                                        //linksQueue.add({url: link});
+                                                        enqueue(link, workQueue);
+
+                                                    });
+                                                }
+                                            });
+                                        }
+
+                                        if ($("img").length > 0) {
+                                            var internalImageLinks = new Set();
+
+                                            $("img").each(function (i) {
+                                                if (typeof(this.attribs.src) !== "undefined") {
+
+                                                    var link = URI(this.attribs.src);
+
+                                                    if (link.is('URL')) {
+                                                        if (link.is("relative")) {
+                                                            this.attribs.src = wutil.appendRelativePath(url, this.attribs.src);
+                                                        }
+
+                                                        // Does link contain
+                                                        if (this.attribs.src.indexOf(coreDomain !== -1)) {
+                                                            var cleanLink = wutil.cleanUrl(this.attribs.src);
+                                                            internalImageLinks.add(cleanLink);
+
+                                                        } else {
+                                                            //wedis.setExternalLink(cUrl, wutil.cleanUrl(this.attribs.href));
+                                                        }
                                                     }
                                                 }
 
-                                            }
 
-                                            if (i === $('a').length - 1) {
-                                                internalLinks.forEach(function (link) {
-                                                    wedis.setInternalLink(url, link);
+                                                if (i === $('img').length - 1) {
+                                                    internalImageLinks.forEach(function (link) {
+                                                        wedis.setImageLink(url, link);
 
-                                                    wedis.appearsOn(link, url); // Double check this
+                                                        wedis.imageAppearsOn(link, url); // Double check this
 
-                                                    //linksQueue.add({url: link});
-                                                    enqueue(link, workQueue);
-
-                                                });
-                                            }
-                                        });
-                                    }
-
-                                    if ($("img").length > 0) {
-                                        var internalImageLinks = new Set();
-
-                                        $("img").each(function (i) {
-                                            if (typeof(this.attribs.src) !== "undefined") {
-
-                                                var link = URI(this.attribs.src);
-
-                                                if(link.is('URL')){
-                                                    if(link.is("relative")) {
-                                                        this.attribs.src = wutil.appendRelativePath(url, this.attribs.src);
-                                                    }
-
-                                                    // Does link contain
-                                                    if (this.attribs.src.indexOf(coreDomain !== -1)) {
-                                                        var cleanLink = wutil.cleanUrl(this.attribs.src);
-                                                        internalImageLinks.add(cleanLink);
-
-                                                    } else {
-                                                        //wedis.setExternalLink(cUrl, wutil.cleanUrl(this.attribs.href));
-                                                    }
+                                                        enqueue(link, workQueue);
+                                                    });
                                                 }
-                                            }
+                                            });
+                                        }
 
 
-                                            if (i === $('img').length - 1) {
-                                                internalImageLinks.forEach(function (link) {
-                                                    wedis.setImageLink(url, link);
-
-                                                    wedis.imageAppearsOn(link, url); // Double check this
-
-                                                    enqueue(link, workQueue);
-                                                });
-                                            }
-                                        });
-                                    }
-
-
-                                    wedis.setHtml(url, html, function () {
-                                        wedis.setMeta(meta, function () {
-                                            wedis.setHeaders(url, response.headers, function(){
-                                                wedis.setHttpStatus(url, response.statusCode, function () {
-                                                    done();
+                                        wedis.setHtml(url, html, function () {
+                                            wedis.setMeta(meta, function () {
+                                                wedis.setHeaders(url, response.headers, function () {
+                                                    wedis.setHttpStatus(url, response.statusCode, function () {
+                                                        done();
+                                                    });
                                                 });
                                             });
                                         });
-                                    });
 
-                                }
-                                else if(contentType.indexOf('image/') >= 0){
-                                    //console.log("This is a image");
-                                    //console.log(response.headers);
-                                    //console.log(contentType);
+                                    }
+                                    else if (contentType.indexOf('image/') >= 0) {
+                                        //console.log("This is a image");
+                                        //console.log(response.headers);
+                                        //console.log(contentType);
 
-                                    wedis.setHttpStatus(url, response.statusCode, function () {
-                                        wedis.setHeaders(url, response.headers, function(){
-                                            done();
-                                        })
-                                    });
+                                        wedis.setHttpStatus(url, response.statusCode, function () {
+                                            wedis.setHeaders(url, response.headers, function () {
+                                                done();
+                                            })
+                                        });
 
 
-                                }
-                                else {
-                                    console.log("Not HTML nor image");
-                                    console.log(contentType);
-                                    wedis.setHttpStatus(url, response.statusCode, function () {
-                                        wedis.setHeaders(url, response.headers, function(){
-                                            done();
-                                        })
-                                    });
+                                    }
+                                    else {
+                                        console.log("Not HTML nor image");
+                                        console.log(contentType);
+                                        wedis.setHttpStatus(url, response.statusCode, function () {
+                                            wedis.setHeaders(url, response.headers, function () {
+                                                done();
+                                            })
+                                        });
 
+                                    }
                                 }
 
                             } else {

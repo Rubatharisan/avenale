@@ -60,7 +60,7 @@ if(cluster.isMaster){
     analyzersQueue.process(function (job, done) {
 
         var url = job.data.link;
-
+        console.log(url);
         wedis.getHtml(url, function (htmlContent) {
             var $ = undefined;
 
@@ -88,12 +88,18 @@ if(cluster.isMaster){
                                 var issues = caseController.do(urlData, $, wedis);
 
                                 if (Object.keys(issues).length !== 0) {
-                                    issues.sessionId = job.data.sessionId;
+                                    var message = {
+                                        link: url,
+                                        emotion: 'bad',
+                                        sessionId: job.data.sessionId,
+                                        issues: issues
+                                    };
+                                    messageQueue.add(message);
+
                                     issues.link = url;
-                                    issues.emotion = 'bad';
-                                    messageQueue.add(issues);
-                                    console.log(url, issues);
+                                    wedis.addIssues(job.data.sessionId, JSON.stringify(issues));
                                 }
+
                             } else {
                                 console.log("Sorry, no Content-Type", url);
                             }

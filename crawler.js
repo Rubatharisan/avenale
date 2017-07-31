@@ -284,7 +284,9 @@ if(cluster.isMaster){
                                 }
 
                             } else {
-                                console.log("Sorry,", error, url);
+                                done(
+                                    log.error("Sorry,", error, url)
+                                );
                             }
 
                         });

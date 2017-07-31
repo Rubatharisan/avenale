@@ -166,6 +166,7 @@ var setupCard = function(entry, block){
 
     var blockSelector;
     var cardSelector;
+    var issueMessage = "";
 
 
     if(block == undefined){
@@ -177,6 +178,13 @@ var setupCard = function(entry, block){
             cardSelector = '.bad-card';
         }
 
+        if(entry.issues){
+            for(issue in entry.issues){
+                for(issuetext in entry.issues[issue]){
+                    issueMessage += entry.issues[issue][issuetext] + " ";
+                }
+            }
+        }
         entry = entry.link;
 
     } else {
@@ -189,6 +197,7 @@ var setupCard = function(entry, block){
 
     var myCard = $(cardSelector + ':first').clone();
     myCard.find('.linkId').text(entry);
+    myCard.find('.issueId').text(issueMessage);
     myCard.find('#linkId').val(entry);
 
     $(blockSelector).prepend('<br>');

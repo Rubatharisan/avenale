@@ -16,11 +16,12 @@ var service = {
 
             var caseAction = cases[urlData.requiredTests[currentCase]];
 
-            if(urlData.headers['content-type'].indexOf(caseAction.for) >= 0){
+            if(urlData.headers['content-type'].indexOf(caseAction.for()) >= 0){
                 var result = caseAction.do($, urlData, wedis);
 
                 if (Object.keys(result).length !== 0) {
                     issues[urlData.requiredTests[currentCase]] = result;
+
                 }
 
             }

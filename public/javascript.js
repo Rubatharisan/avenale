@@ -154,7 +154,7 @@ var viewLinksTo = function(data){
 
 
 var initiateWebsocket = function(sessionId){
-    var socket = io('http://localhost:3001/' + sessionId);
+    var socket = io(':3001/' + sessionId);
     socket.on('message', function(msg){
         setupCard(msg);
         console.log(msg);
